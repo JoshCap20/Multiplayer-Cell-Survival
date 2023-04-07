@@ -11,6 +11,9 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
+const MAP_WIDTH = 500;
+const MAP_HEIGHT = 500;
+
 let cells = new Map();
 let foodParticles = generateFoodParticles();
 
@@ -23,7 +26,7 @@ wss.on("connection", (ws) => {
     y: spawnPoint.y,
     radius: 10,
   });
-
+  console.log("new connection");
   ws.send(JSON.stringify({ type: "cellId", cellId }));
   ws.send(JSON.stringify({ type: "foodParticles", foodParticles }));
 
@@ -61,12 +64,22 @@ function createCellId() {
 }
 
 function updateCell(cellId, data) {
-  let cell = cells.get(cellId);
-  if (cell) {
-    cell.x = data.x;
-    cell.y = data.y;
+    let cell = cells.get(cellId);
+    if (cell) {
+      const speedFactor = Math.max(0.2, 1 - (cell.radius - 10) / 100);
+      const targetX = data.targetX;
+      const targetY = data.targetY;
+      const dx = targetX - cell.x;
+      const dy = targetY - cell.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+  
+      if (distance > 1) {
+        cell.x += (dx / distance) * speedFactor;
+        cell.y += (dy / distance) * speedFactor;
+      }
+    }
   }
-}
+  
 
 function handleCollision(cells, foodParticles) {
   for (const cell of cells.values()) {
@@ -83,18 +96,18 @@ function handleCollision(cells, foodParticles) {
 }
 
 function getRandomSpawnPoint() {
-  let x = Math.random() * 800;
-  let y = Math.random() * 600;
+  let x = Math.random() * MAP_WIDTH;
+  let y = Math.random() * MAP_HEIGHT;
 
   return { x, y };
 }
 
-function generateFoodParticles() {
+function generateFoodParticles(amount = 100) {
   const foodParticles = [];
 
-  for (let i = 0; i < 100; i++) {
-    const x = Math.random() * 800;
-    const y = Math.random() * 600;
+  for (let i = 0; i < amount; i++) {
+    const x = Math.random() * MAP_WIDTH;
+    const y = Math.random() * MAP_HEIGHT;
 
     foodParticles.push({ x, y });
   }
@@ -141,3 +154,11 @@ server.listen(8080, () => {
     console.log('Play with anyone on your network: ' + add + ':8080');
   })
 });
+
+// generate more particles when there are less than 1000
+// setInterval(() => {
+//     if (foodParticles.length < 1000) {
+//         foodParticles = generateFoodParticles(10000);
+//     }
+// }, 1000);
+
