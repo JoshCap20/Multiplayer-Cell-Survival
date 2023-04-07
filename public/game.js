@@ -72,8 +72,7 @@ canvas.addEventListener("mousemove", (event) => {
       const targetY = mouseY + viewY;
       socket.send(JSON.stringify({ type: "update", targetX, targetY }));
     }
-  }, 1000 / 60);
-
+  }, 1000 / 30);
 
 function renderGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);

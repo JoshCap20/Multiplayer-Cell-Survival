@@ -56,7 +56,7 @@ wss.on("connection", (ws) => {
         foodParticles,
       })
     );
-  }, 1000 / 60);
+  }, 1000 / 30);
 });
 
 function createCellId() {
