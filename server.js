@@ -107,7 +107,7 @@ function getRandomSpawnPoint() {
   return { x, y };
 }
 
-function generateFoodParticles(amount = 100) {
+function generateFoodParticles(amount = 200) {
   const foodParticles = [];
 
   for (let i = 0; i < amount; i++) {
@@ -154,8 +154,8 @@ server.listen(8080, () => {
 
 // Generate more particles when there are less than 100
 setInterval(() => {
-    if (foodParticles.length < 100) {
-        foodParticles = generateFoodParticles(100);
+    if (foodParticles.length < 40) {
+        foodParticles = generateFoodParticles(200);
     }
 }, 30000);
 
