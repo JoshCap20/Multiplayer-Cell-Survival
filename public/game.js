@@ -66,13 +66,16 @@ canvas.addEventListener("mousemove", (event) => {
     mouseY = event.clientY - rect.top;
   });
 
-  setInterval(() => {
+  function update() {
     if (playerCell) {
       const targetX = mouseX + viewX;
       const targetY = mouseY + viewY;
       socket.send(JSON.stringify({ type: "update", targetX, targetY }));
     }
-  }, 1000 / 30);
+    requestAnimationFrame(update);
+  }
+  
+  update();
 
 function renderGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
