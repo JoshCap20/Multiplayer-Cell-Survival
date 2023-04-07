@@ -74,11 +74,16 @@ function updateCell(cellId, data) {
       const distance = Math.sqrt(dx * dx + dy * dy);
   
       if (distance > 1) {
-        cell.x += (dx / distance) * speedFactor;
-        cell.y += (dy / distance) * speedFactor;
+        const newX = cell.x + (dx / distance) * speedFactor;
+        const newY = cell.y + (dy / distance) * speedFactor;
+  
+        // Keep the cell within the game map boundaries
+        cell.x = Math.min(Math.max(newX, cell.radius), MAP_WIDTH - cell.radius);
+        cell.y = Math.min(Math.max(newY, cell.radius), MAP_HEIGHT - cell.radius);
       }
     }
   }
+  
   
 
 function handleCollision(cells, foodParticles) {
@@ -115,14 +120,6 @@ function generateFoodParticles(amount = 100) {
   return foodParticles;
 }
 
-function updateCell(cellId, data) {
-    let cell = cells.get(cellId);
-    if (cell) {
-      const speedFactor = Math.max(0.2, 1 - (cell.radius - 10) / 100);
-      cell.x += (data.x - cell.x) * speedFactor;
-      cell.y += (data.y - cell.y) * speedFactor;
-    }
-  }
   
   function consumeSmallerCells(cells) {
     const cellArray = Array.from(cells.values());

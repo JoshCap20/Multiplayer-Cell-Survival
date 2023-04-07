@@ -22,7 +22,8 @@ socket.onmessage = (event) => {
         case "cellConsumed":
             if (cellId === undefined) return;
             if (data.cell === cellId) {
-                alert("Game over!");
+                displayMsg("You have been eaten!");
+                socket.close();
             }
             break;
         case "foodParticles":
@@ -30,17 +31,15 @@ socket.onmessage = (event) => {
             break;
         case "update":
             cells = data.cells;
-            foodParticles = data.foodParticles;
-
-            if (!playerCell) {
-                playerCell = cells.find((cell) => cell.id === cellId);
-            }
-
+            
+            playerCell = cells.find((cell) => cell.id === cellId);
+            
             if (playerCell) {
                 viewX = playerCell.x - canvas.width / 2;
                 viewY = playerCell.y - canvas.height / 2;
             }
-
+            
+            foodParticles = data.foodParticles;
             renderGame();
             break;
     }
@@ -48,10 +47,16 @@ socket.onmessage = (event) => {
 
 socket.onclose = () => {
     socket.send(JSON.stringify({ type: "disconnect" }));
+    displayMsg("Disconnected from server");
+};
+
+socket.onerror = (error) => {
+    console.log(`WebSocket error: ${error}`);
+    displayMsg("Error connecting to server");
 };
 
 socket.onopen = () => {
-    console.log("connected to server");
+    console.log("Connected to server");
     renderGame();
 };
 
@@ -59,35 +64,22 @@ canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
     mouseX = event.clientX - rect.left;
     mouseY = event.clientY - rect.top;
+  });
 
-    const targetX = mouseX + viewX;
-    const targetY = mouseY + viewY;
-
+  setInterval(() => {
     if (playerCell) {
-        const dx = targetX - playerCell.x;
-        const dy = targetY - playerCell.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        const speedFactor = Math.max(0.2, 1 - (playerCell.radius - 10) / 100);
-
-        if (distance > 1) {
-            playerCell.x += (dx / distance) * speedFactor;
-            playerCell.y += (dy / distance) * speedFactor;
-        }
+      const targetX = mouseX + viewX;
+      const targetY = mouseY + viewY;
+      socket.send(JSON.stringify({ type: "update", targetX, targetY }));
     }
-
-    socket.send(JSON.stringify({ type: "update", x: playerCell.x, y: playerCell.y }));
-});
-
-
-
+  }, 1000 / 60);
 
 
 function renderGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const cell of cells) {
-        if (cell.id === cellId) continue; // Skip the local player's cell
+        if (cell.id === cellId) continue; 
 
         ctx.fillStyle = "red";
         ctx.beginPath();
@@ -96,16 +88,15 @@ function renderGame() {
         ctx.fill();
     }
 
-    // Draw the local player's cell
     if (playerCell) {
         ctx.fillStyle = "blue";
         ctx.beginPath();
         ctx.arc(
-            playerCell.x - viewX,
-            playerCell.y - viewY,
-            playerCell.radius,
-            0,
-            2 * Math.PI
+        playerCell.x - viewX,
+        playerCell.y - viewY,
+        playerCell.radius,
+        0,
+        2 * Math.PI
         );
         ctx.closePath();
         ctx.fill();
@@ -122,5 +113,10 @@ function renderGame() {
     requestAnimationFrame(renderGame);
 }
 
-
+function displayMsg(msg) {
+    canvas.style.display = "none";
+    const msgDiv = document.createElement("div");
+    msgDiv.innerHTML = msg;
+    document.body.appendChild(msgDiv);
+}
 
