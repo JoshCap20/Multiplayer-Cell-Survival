@@ -152,10 +152,10 @@ server.listen(8080, () => {
   })
 });
 
-// generate more particles when there are less than 1000
-// setInterval(() => {
-//     if (foodParticles.length < 1000) {
-//         foodParticles = generateFoodParticles(10000);
-//     }
-// }, 1000);
+// Generate more particles when there are less than 100
+setInterval(() => {
+    if (foodParticles.length < 100) {
+        foodParticles = generateFoodParticles(100);
+    }
+}, 30000);
 
